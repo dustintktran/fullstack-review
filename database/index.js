@@ -7,7 +7,7 @@ db.once('open', () => {
 })
 
 let repoSchema = mongoose.Schema({
-  id: Number,
+  id: {type: Number, unique: true },
   name: String,
   html_url: String,
   watchers: Number,
@@ -20,11 +20,10 @@ let repoSchema = mongoose.Schema({
 
 let Repo = mongoose.model('Repo', repoSchema);
 
-
 let save = (repoObjects, callback) => { //is an array of objects each representing an array
   let names = [];
   for (var i = 0; i < repoObjects.length; i++) { //loop through each of the objects to save
-    
+
     let repo = new Repo({
       id: repoObjects[i].id,
       name: repoObjects[i].name,
@@ -39,7 +38,7 @@ let save = (repoObjects, callback) => { //is an array of objects each representi
 
     repo.save((err, repo) => {
       if (err) {
-        return console.log(err);
+        return console.log('Duplicate repo not added');
       } else {
         names.push(repo.name);
         console.log('Repo w/ name ', repo.name, ' added to mongo');
@@ -54,43 +53,17 @@ let save = (repoObjects, callback) => { //is an array of objects each representi
 
 }
 
+let get25 = (callback) => {
+  let query = Repo.find({}).sort({id: -1}).limit(25);
+  query.exec((err, data) => {
+    callback(data);
+  })
+}
+
+let clear = (callback) => {
+  let query = db.db.dropCollection('repos', callback)
+}
+
 module.exports.save = save;
-
-
-
-
-// let aRepo = new Repo({
-  //   id: 1,
-  //   name: 'BillysRepo',
-  //   html_url: '',
-  //   watchers: 5,
-  //   owner: 'Billy',
-  //   owner_id: 1,
-  //   avatar_url: '',
-  //   owner_url: '',
-  //   owner_api: ''
-  // })
-
-
-  // let repoSchema = mongoose.Schema({
-  //   id: Number,
-  //   name: String,
-  //   html_url: String,
-  //   watchers: Number,
-  //   owner: String,
-  //   owner_id: Number,
-  //   avatar_url: String,
-  //   owner_url: String,
-  //   owner_api: String
-  // });
-
-  // let Repo = mongoose.model('Repo', repoSchema);
-
-    // aRepo.save((err, aRepo) => {
-  //   if(err) {
-  //     return console.log(err)
-  //   } else {
-  //     console.log(aRepo.name)
-  //   }
-  // })
-  // console.log(aRepo.name)
+module.exports.get25 = get25;
+module.exports.clear = clear;
